@@ -19,7 +19,7 @@
     {{-- Header --}}
     @include('components.buyer-header')
 
-    {{-- Content --}}
+    {{-- Main content --}}
     <main class="min-h-screen">
         @yield('content')
         {{ $slot ?? '' }}
@@ -46,76 +46,73 @@
         <span x-text="message"></span>
     </div>
 
-    {{-- Sidebar Cart --}}
-    <div id="sidebar-container"></div>
+{{-- Sidebar giỏ hàng (render bằng Alpine x-if) --}}
+<div 
+    x-data="{ showCart: false }"
+    @toggle-cart.window="showCart = true"
+    x-cloak
+>
+    <template x-if="showCart">
+        <div class="fixed inset-0 z-[9999]">
+            {{-- Overlay --}}
+            <div 
+                class="absolute inset-0 bg-black bg-opacity-40" 
+                @click="showCart = false"
+            ></div>
+
+            {{-- Sidebar --}}
+            <div class="absolute right-0 top-0 w-80 h-full bg-[#111827] text-white shadow-lg border-l border-[#374151]">
+                @livewire('sidebar-cart')
+            </div>
+        </div>
+    </template>
+</div>
 
 
-    {{-- Livewire + Scripts --}}
+    {{-- Livewire scripts --}}
+    @livewireScripts
     @stack('scripts')
-
-
-<script>
-    window.addEventListener('toggle-cart', async () => {
-        const container = document.getElementById('sidebar-container');
-
-        // Clear sidebar cũ nếu có
-        container.innerHTML = '';
-
-        // Mount lại sidebar mỗi lần bấm
-        const { default: mount } = await window.Livewire.mount('sidebar-cart');
-        container.appendChild(mount.el);
-    });
-</script>
-
 
     {{-- Icon bay vào giỏ --}}
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-            button.addEventListener('mousedown', () => {
-                const thumbnail = button.dataset.thumbnail;
-                const cartIcon = document.querySelector('#cart-icon');
-                if (!cartIcon || !thumbnail) return;
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+                button.addEventListener('mousedown', () => {
+                    const thumbnail = button.dataset.thumbnail;
+                    const cartIcon = document.querySelector('#cart-icon');
+                    if (!cartIcon || !thumbnail) return;
 
-                const rectFrom = button.getBoundingClientRect();
-                const rectTo = cartIcon.getBoundingClientRect();
+                    const rectFrom = button.getBoundingClientRect();
+                    const rectTo = cartIcon.getBoundingClientRect();
 
-                const clone = document.createElement('img');
-                clone.src = thumbnail;
-                clone.style.position = 'fixed';
-                clone.style.zIndex = 9999;
-                clone.style.width = '60px';
-                clone.style.height = '60px';
-                clone.style.borderRadius = '8px';
-                clone.style.objectFit = 'cover';
-                clone.style.pointerEvents = 'none';
-                clone.style.transition = 'transform 0.8s ease-in-out, opacity 0.8s';
-                clone.style.opacity = 1;
-                clone.style.left = rectFrom.left + 'px';
-                clone.style.top = rectFrom.top + 'px';
+                    const clone = document.createElement('img');
+                    clone.src = thumbnail;
+                    clone.style.position = 'fixed';
+                    clone.style.zIndex = 9999;
+                    clone.style.width = '60px';
+                    clone.style.height = '60px';
+                    clone.style.borderRadius = '8px';
+                    clone.style.objectFit = 'cover';
+                    clone.style.pointerEvents = 'none';
+                    clone.style.transition = 'transform 0.8s ease-in-out, opacity 0.8s';
+                    clone.style.opacity = 1;
+                    clone.style.left = rectFrom.left + 'px';
+                    clone.style.top = rectFrom.top + 'px';
 
-                document.body.appendChild(clone);
+                    document.body.appendChild(clone);
 
-                requestAnimationFrame(() => {
-                    clone.style.transform = `
-                        translate(${rectTo.left - rectFrom.left}px, ${rectTo.top - rectFrom.top}px)
-                        scale(0.4) rotate(720deg)
-                    `;
-                    clone.style.opacity = 0;
+                    requestAnimationFrame(() => {
+                        clone.style.transform = `
+                            translate(${rectTo.left - rectFrom.left}px, ${rectTo.top - rectFrom.top}px)
+                            scale(0.4) rotate(720deg)
+                        `;
+                        clone.style.opacity = 0;
+                    });
+
+                    setTimeout(() => clone.remove(), 900);
                 });
-
-                setTimeout(() => clone.remove(), 900);
             });
         });
-    });
     </script>
-
-<script>
-    window.addEventListener('force-refresh-sidebar', () => {
-        Livewire.restart();
-    });
-</script>
-
-
 </body>
 </html>

@@ -1,40 +1,26 @@
-<div wire:init="noop">
-
 <div 
-    x-data="{ open: false }"
-    x-on:toggle-cart.window="open = !open"
-    x-on:keydown.escape.window="open = false"
-    x-show="open"
-    x-transition
+    x-data 
     class="fixed inset-0 z-[9999]"
-    style="display: none;"
+    x-init="$watch('open', val => { if (!val) $el.remove() })"
 >
-
     {{-- Overlay --}}
     <div 
-        x-show="open"
-        x-transition.opacity
-        @click="open = false"
         class="absolute inset-0 bg-black bg-opacity-40"
-        style="display: none;"
+        @click="$el.closest('#sidebar-container').innerHTML = ''"
     ></div>
 
     {{-- Sidebar --}}
     <div 
-        x-show="open"
-        x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="translate-x-full"
-        x-transition:enter-end="translate-x-0"
-        x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="translate-x-0"
-        x-transition:leave-end="translate-x-full"
-        class="absolute right-0 top-0 w-80 h-full bg-[#111827] text-white shadow-lg border-l border-[#374151] transform pointer-events-auto"
-        style="display: none;"
+        class="absolute right-0 top-0 w-80 h-full bg-[#111827] text-white shadow-lg border-l border-[#374151]"
+        x-data="{ open: true }"
     >
         {{-- Header --}}
         <div class="flex justify-between items-center px-4 py-3 border-b border-gray-700">
             <h2 class="font-semibold text-lg">🛒 Giỏ hàng</h2>
-            <button @click="open = false" class="text-gray-400 hover:text-red-400 text-xl">×</button>
+            <button 
+                @click="$el.closest('#sidebar-container').innerHTML = ''" 
+                class="text-gray-400 hover:text-red-400 text-xl"
+            >×</button>
         </div>
 
         {{-- Product List --}}
@@ -72,6 +58,4 @@
             </a>
         </div>
     </div>
-</div>
-
 </div>
