@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ config('app.name', 'Choso') }}</title>
 
-    {{-- Vite --}}
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- Vite CSS --}}
+    @vite(['resources/css/app.css'])
+
+    {{-- CSRF Token --}}
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- Livewire --}}
     @livewireStyles
@@ -46,30 +49,8 @@
         <span x-text="message"></span>
     </div>
 
-{{-- Sidebar giỏ hàng (render bằng Alpine x-if) --}}
-<div 
-    x-data="{ showCart: false }"
-    @toggle-cart.window="showCart = true"
-    x-cloak
->
-    <template x-if="showCart">
-        <div class="fixed inset-0 z-[9999]">
-            {{-- Overlay --}}
-            <div 
-                class="absolute inset-0 bg-black bg-opacity-40" 
-                @click="showCart = false"
-            ></div>
-
-            {{-- Sidebar --}}
-            <div class="absolute right-0 top-0 w-80 h-full bg-[#111827] text-white shadow-lg border-l border-[#374151]">
-                @livewire('sidebar-cart')
-            </div>
-        </div>
-    </template>
-</div>
-
-
-    {{-- Livewire scripts --}}
+    {{-- Vite JS + Livewire scripts --}}
+    @vite('resources/js/app.js')
     @livewireScripts
     @stack('scripts')
 

@@ -19,6 +19,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Livewire::component('sidebar-cart', \App\Livewire\SidebarCart::class);
+        
     }
 }

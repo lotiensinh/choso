@@ -13,7 +13,7 @@ class BuyerOrderController extends Controller
 {
     public function index()
     {
-        $orders = \App\Models\Order::where('user_id', \Auth::id())->latest()->get();
+        $orders = Order::where('user_id', Auth::id())->latest()->get();
         return view('buyer.orders', compact('orders'));
     }
 
@@ -78,15 +78,12 @@ class BuyerOrderController extends Controller
 
         foreach ($cart as $item) {
             // Kiểm tra sản phẩm có tồn tại không
-            $product = \App\Models\Product::find($item['id']);
+            $product = Product::find($item['id']);
+            if (!$product) continue;
 
-            if (!$product) {
-                continue; // bỏ qua nếu sản phẩm không tồn tại
-            }
-
-            \App\Models\Order::create([
+            Order::create([
                 'product_id' => $product->id,
-                'user_id' => \Illuminate\Support\Facades\Auth::id(),
+                'user_id' => Auth::id(),
                 'email' => $request->email,
                 'screenshot_path' => $path,
                 'is_paid' => false,
@@ -98,7 +95,7 @@ class BuyerOrderController extends Controller
         return redirect('/')->with('success', 'Đơn hàng đã được gửi. Chờ xác nhận thanh toán!');
     }
 
-    // ✅ Cập nhật: gắn sản phẩm và tăng số lượng vào session
+    // ✅ Gắn sản phẩm vào session (API/add AJAX)
     public function cartAdd(Request $request)
     {
         $request->validate([
@@ -115,6 +112,7 @@ class BuyerOrderController extends Controller
                 break;
             }
         }
+        unset($item); // tránh bug PHP
 
         if (!$found) {
             $cart[] = ['id' => $request->product_id, 'qty' => 1];
@@ -126,5 +124,50 @@ class BuyerOrderController extends Controller
             'message' => $found ? '🛒 Đã tăng số lượng trong giỏ!' : '✅ Đã thêm vào giỏ hàng!',
             'cart_count' => collect($cart)->sum('qty'),
         ]);
+    }
+
+    // ============ CHUẨN HÓA GIỎ HÀNG TRUYỀN THỐNG ============
+
+    // Hiển thị giỏ hàng
+    public function cartView()
+    {
+        // Convert lại về format dùng chung, lấy đầy đủ info sản phẩm
+        $cartRaw = session()->get('cart', []);
+        $cart = [];
+        foreach ($cartRaw as $item) {
+            // Nếu item chỉ có id & qty thì lấy thêm từ DB, còn nếu đã có name/price/thumbnail thì giữ nguyên
+            $product = Product::find($item['id']);
+            if ($product) {
+                $cart[] = [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'price' => $product->price,
+                    'thumbnail' => $product->thumbnail_path,
+                    'quantity' => $item['qty'] ?? $item['quantity'] ?? 1,
+                ];
+            }
+        }
+        $total = collect($cart)->sum(fn($i) => $i['price'] * $i['quantity']);
+
+        return view('buyer.cart.index', compact('cart', 'total'));
+
+        $categories = \App\Models\Category::orderBy('priority', 'desc')->get();
+        $suggested = \App\Models\Product::orderBy('sold', 'desc')->limit(4)->get();
+        return view('buyer.cart.index', compact('cart', 'total', 'categories', 'suggested'));
+
+    }
+
+    // Xóa sản phẩm khỏi giỏ hàng
+    public function cartRemove(Request $request)
+    {
+        $cart = session()->get('cart', []);
+        $id = $request->input('id');
+        // Lọc ra khỏi cart
+        $cart = array_filter($cart, function ($item) use ($id) {
+            return $item['id'] != $id;
+        });
+        session()->put('cart', array_values($cart)); // reindex lại key
+        // Thông báo toast thành công
+        return redirect()->route('cart.index')->with('success', 'Đã xoá sản phẩm khỏi giỏ hàng!');
     }
 }

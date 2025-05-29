@@ -42,7 +42,6 @@
                     <span class="text-sm">{{ Auth::user()->name }}</span>
                     <i class="fas fa-chevron-down text-xs"></i>
                 </button>
-
                 <div x-show="open"
                      @click.away="open = false"
                      x-transition
@@ -58,33 +57,24 @@
         @endauth
 
         {{-- Icon giỏ hàng --}}
-{{-- Icon giỏ hàng --}}
 <div class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
     <a 
-    href="javascript:void(0)" 
-    onclick="window.dispatchEvent(new Event('toggle-cart'))"
-    class="relative flex items-center justify-center bg-gray-800 border border-gray-700 hover:border-[#00796B] rounded-lg px-3 py-2"
->
-    <i id="cart-icon" class="fas fa-shopping-cart text-white text-lg"></i>
-    <span 
-        x-data="{ count: {{ session('cart') ? collect(session('cart'))->sum('quantity') : 0 }} }"
-        x-init="
-            window.addEventListener('cart-updated', () => {
-                fetch('{{ route('buyer.api.cart-count') }}')
-                    .then(res => res.json())
-                    .then(data => count = data.count)
-            })
-        "
-        x-text="count"
-        class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center leading-none"
-    ></span>
-</a>
-
+        href="{{ route('cart.index') }}"
+        class="relative flex items-center justify-center bg-gray-800 border border-gray-700 hover:border-[#00796B] rounded-lg px-3 py-2"
+    >
+        <i id="cart-icon" class="fas fa-shopping-cart text-white text-lg"></i>
+        <span 
+            x-data="{ count: {{ session('cart') ? collect(session('cart'))->sum('qty') : 0 }} }"
+            x-init="window.addEventListener('cartUpdated', e => { count = e.detail ? e.detail.cart_count : count + 1 })"
+            x-text="count"
+            class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center leading-none"
+        ></span>
+    </a>
 </div>
 
     </div>
 
-    {{-- Danh mục ngang --}}
+        {{-- Danh mục ngang --}}
     @if(isset($categories) && count($categories) > 0)
         <div class="bg-gray-800 border-t border-gray-700 overflow-x-auto">
             <div class="max-w-screen-xl mx-auto px-4 py-2 flex gap-5 text-sm text-gray-300 whitespace-nowrap">

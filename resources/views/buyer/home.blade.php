@@ -20,11 +20,11 @@
     </div>
 
     <!-- Livewire filter -->
-    <div class="py-8 px-4 sm:px-8 bg-dark-800">
-        <div class="max-w-screen-xl mx-auto">
-            
-        </div>
+<div class="py-8 px-4 sm:px-8 bg-dark-800">
+    <div class="max-w-screen-xl mx-auto">
+        
     </div>
+</div>
 
 </div>
 

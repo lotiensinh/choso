@@ -10,16 +10,16 @@ use App\Http\Controllers\Buyer\SettingController;
 use App\Http\Controllers\Buyer\BuyerCategoryController;
 use App\Http\Controllers\Buyer\BuyerReviewController;
 use App\Http\Controllers\Buyer\BuyerProfileController;
-use App\Livewire\ProductFilter;
+
 use Illuminate\Support\Facades\Route;
 
 // =======================
-// 🔐 Buye Routes tối ưu SEO (public)
+// 🔐 Buyer Routes tối ưu SEO (public)
 // =======================
 Route::get('/', [BuyerHomeController::class, 'index'])->name('buyer.home');
 Route::get('/san-pham', [BuyerProductController::class, 'index'])->name('buyer.products');
 Route::get('/san-pham/{slug}', [BuyerProductController::class, 'show'])->name('buyer.products.show');
-Route::get('/danh-muc/{slug}', ProductFilter::class)->name('danh-muc');
+Route::get('/danh-muc/{slug}', [BuyerCategoryController::class, 'show'])->name('danh-muc');
 Route::get('/san-pham-noi-bat', [BuyerProductController::class, 'featured'])->name('buyer.featuredProducts');
 
 // Thanh toán giỏ hàng
@@ -34,10 +34,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/thanh-toan', [BuyerOrderController::class, 'processCart'])->name('checkout.process');
 });
 
-// Giỏ hàng
+// ========== CHUẨN HÓA PHẦN GIỎ HÀNG TRUYỀN THỐNG ==========
+// Trang giỏ hàng
 Route::get('/gio-hang', [BuyerOrderController::class, 'cartView'])->name('cart.index');
+// Thêm sản phẩm vào giỏ hàng
 Route::post('/gio-hang/them', [BuyerOrderController::class, 'cartAdd'])->name('cart.add');
+// Xóa sản phẩm khỏi giỏ hàng
 Route::post('/gio-hang/xoa', [BuyerOrderController::class, 'cartRemove'])->name('cart.remove');
+// ========== END GIỎ HÀNG ==========
 
 // ======================= ADMIN LOGIN =======================
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -57,11 +61,9 @@ Route::middleware(['auth'])->prefix('buyer')->name('buyer.')->group(function () 
 Route::get('/ajax/products/filter', [App\Http\Controllers\Buyer\BuyerProductController::class, 'ajaxFilter'])
      ->name('ajax.filter.products');
 
-
 Route::get('/api/cart-count', function () {
     $cart = session('cart', []);
     return response()->json([
         'count' => collect($cart)->sum('quantity'),
     ]);
 })->name('buyer.api.cart-count');
-     

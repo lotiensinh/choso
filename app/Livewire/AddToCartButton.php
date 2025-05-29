@@ -3,43 +3,37 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use App\Models\Product;
 
 class AddToCartButton extends Component
 {
-    public Product $product;
+    public $product;
 
-public function addToCart()
-{
-    $cart = session()->get('cart', []);
+    public function addToCart()
+    {
+        $cart = session()->get('cart', []);
+        $productId = $this->product->id;
+        $found = false;
 
-    if (isset($cart[$this->product->id])) {
-        $cart[$this->product->id]['quantity']++;
-    } else {
-        $cart[$this->product->id] = [
-            'id' => $this->product->id,
-            'name' => $this->product->name,
-            'price' => $this->product->price,
-            'thumbnail' => $this->product->thumbnail_path,
-            'quantity' => 1,
-        ];
+        foreach ($cart as &$item) {
+            if ($item['id'] == $productId) {
+                $item['qty'] = ($item['qty'] ?? 1) + 1;
+                $found = true;
+                break;
+            }
+        }
+        unset($item);
+
+        if (!$found) {
+            $cart[] = ['id' => $productId, 'qty' => 1];
+        }
+        session(['cart' => $cart]);
+
+        $cartCount = collect($cart)->sum('qty');
+
+        // Dispatch sự kiện để badge header update và toast, KHÔNG CẦN ->toBrowser() nữa!
+        $this->dispatch('cartUpdated', cart_count: $cartCount);
+        $this->dispatch('toast', message: $found ? '🛒 Đã tăng số lượng trong giỏ!' : '✅ Đã thêm vào giỏ hàng!');
     }
-
-    session()->put('cart', $cart);
-
-    // ✅ Gửi toast
-    $this->dispatch('toast', message: '🧺 Đã thêm vào giỏ hàng');
-
-    // ✅ Gửi hiệu ứng bay icon (frontend dùng để show animation)
-    $this->dispatch('cart-fly', thumbnail: asset('storage/' . $this->product->thumbnail_path));
-
-    // ✅ Gửi sự kiện để icon 🛒 cập nhật số lượng
-    $this->dispatch('cartUpdated');
-
-    // ✅ Nếu SidebarCart đang mở thì cập nhật lại nội dung
-    $this->dispatch('$refresh', to: 'sidebar-cart');
-}
-
 
     public function render()
     {

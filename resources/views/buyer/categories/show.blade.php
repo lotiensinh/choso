@@ -28,8 +28,8 @@
                 {{-- Cột phải (Danh sách sản phẩm) --}}
                 <div class="flex-1">
                     <h3 class="text-lg font-semibold mb-4">🛍 Tất cả sản phẩm</h3>
-
-                    @include('components.product-grid', ['products' => $products])
+                    {{-- THAY ĐÚNG ĐOẠN NÀY --}}
+                    <livewire:product-filter :categoryId="$category->id" />
                 </div>
             </div>
         </div>
